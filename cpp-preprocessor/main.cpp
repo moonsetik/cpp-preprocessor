@@ -14,6 +14,11 @@ path operator""_p(const char* data, std::size_t sz) {
     return path(data, data + sz);
 }
 
+void PrintIncludeError(const string& filename, const path& current_file_path, int current_line) {
+    cout << "unknown include file " << filename << " at file "
+        << current_file_path.string() << " at line " << current_line << endl;
+}
+
 bool ProcessFile(istream& in, ostream& out, const path& current_dir,
     const vector<path>& include_directories, const path& current_file_path);
 
@@ -37,8 +42,8 @@ bool ProcessFile(istream& in, ostream& out, const path& current_dir,
     string line;
     int current_line = 0;
 
-    regex include_quotes("\\s*#\\s*include\\s*\"([^\"]*)\"\\s*");
-    regex include_angle("\\s*#\\s*include\\s*<([^>]*)>\\s*");
+    regex include_quotes(R"(\s*#\s*include\s*"([^"]*)"\s*)");
+        regex include_angle(R"(\s*#\s*include\s*<([^>]*)>\s*)");
 
     while (getline(in, line)) {
         current_line++;
@@ -60,8 +65,7 @@ bool ProcessFile(istream& in, ostream& out, const path& current_dir,
                     }
                 }
                 if (!found) {
-                    cout << "unknown include file " << filename << " at file "
-                        << current_file_path.string() << " at line " << current_line << endl;
+                    PrintIncludeError(filename, current_file_path, current_line);
                     return false;
                 }
             }
@@ -87,8 +91,7 @@ bool ProcessFile(istream& in, ostream& out, const path& current_dir,
             }
 
             if (!found) {
-                cout << "unknown include file " << filename << " at file "
-                    << current_file_path.string() << " at line " << current_line << endl;
+                PrintIncludeError(filename, current_file_path, current_line);
                 return false;
             }
 
